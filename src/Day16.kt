@@ -1,3 +1,6 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 import kotlin.math.absoluteValue
@@ -35,28 +38,35 @@ fun main() {
     }
 
     fun Input16.part2(): Result16 {
-        runBlocking {
-
-        }
         var x = (1..10_000).flatMap { this }
+        println(x.size)
         for (z in 1..100) {
-            x = buildList {
-                var w = 1
-                while (size < x.size) {
-                    var i = w
-                    var sign = 1
-                    var sum = 0
-                    while (i - 1 in x.indices) {
-                        sum = (sum + (sign * (i - 1..(i + w - 2).coerceIn(x.indices)).fold(0) { a, b -> (a + x[b]) % 10 })) % 10
-                        sign = -sign
-                        i += w + w
+            val cores = 1
+            x = runBlocking(Dispatchers.Default) {
+                (0..<cores).map { core ->
+                    async {
+                        buildList {
+                            ((x.size * core) / cores..<(x.size * (core + 1)) / cores).also { println(it) }.forEach { w ->
+                                var i = w + 1
+                                var sign = 1
+                                var sum = 0
+                                while (i - 1 in x.indices) {
+                                    sum =
+                                        (sum + (sign * (i - 1..(i + w - 2).coerceIn(x.indices)).fold(0) { a, b -> (a + x[b]) % 10 })) % 10
+                                    sign = -sign
+                                    i += 2 * (w + 1)
+                                    if (core == 0) {
+                                        println("$i / ${(x.size * (core + 1)) / cores}")
+                                    }
+                                }
+                                add((sum % 10).absoluteValue)
+                            }
+                            println("asdf")
+                        }
                     }
-                    println("$w $size ${x.size}")
-                    //println((sum % 10).absoluteValue)
-                    add((sum % 10).absoluteValue)
-                    w++
-                }
-            }.also { println(z) }
+                }.awaitAll().flatMap { it }
+            }
+            println(z)
         }
         return x.drop(take(7).fold(0) { a, b -> (a * 10) + b }).take(8).fold(0) { a, b -> (a * 10) + b }
     }

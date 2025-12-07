@@ -11,7 +11,7 @@ import kotlin.time.TimedValue
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String) = Path("src/$name.txt").readText().trim().lines()
+fun readInput(name: String) = Path("src/$name.txt").readText().lines().dropLastWhile { it.isEmpty() }
 
 /**
  * Converts string to md5 hash.
@@ -164,8 +164,8 @@ fun Pos.index(width: Int): Int = (row * width) + col
 fun Pos.index(size: Size): Int = (row * size.width) + col
 
 fun <T> TimedValue<T>.println() {
-    println("result: $value")
-    println("time: $duration")
+    println("\nresult: \n$value")
+    println("\ntime: \n$duration")
 }
 
 val spaceRegex = """\s+""".toRegex()
